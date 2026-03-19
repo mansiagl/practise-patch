@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patches</title>
+  <link rel="stylesheet" href="src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="header">
+      <div id="title">Patches</div>
+      <div id="timerEl">⏱ <span id="timerSpan">0:00</span></div>
+    </div>
+
+    <div id="diff-row">
+      <button class="dbtn active" id="d0">Easy 4×4</button>
+      <button class="dbtn" id="d1">Medium 5×5</button>
+      <button class="dbtn" id="d2">Hard 6×6</button>
+    </div>
+
+    <div id="progress"><div id="progress-bar"></div></div>
+
+    <div id="board-wrap">
+      <svg id="board-svg" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+
+    <div id="btns">
+      <button class="abtn" id="btn-undo">↩ Undo</button>
+      <button class="abtn" id="btn-hint">💡 Hint</button>
+      <button class="abtn" id="btn-reset">↺ Reset</button>
+      <button class="abtn" id="btn-new">✦ New</button>
+    </div>
+
+    <div id="msg"></div>
+
+    <div id="howto">
+      Each region shows a <strong>number + shape</strong> clue in one of its cells.<br />
+      <strong>■</strong> square &nbsp;·&nbsp;
+      <strong>▬</strong> wide rectangle &nbsp;·&nbsp;
+      <strong>▮</strong> tall rectangle<br />
+      Click any cell in a region to fill it. Fill them all to win!
+    </div>
+  </div>
+
+  <script src="src/generator.js"></script>
+  <script src="src/renderer.js"></script>
+  <script src="src/game.js"></script>
+</body>
+</html>
