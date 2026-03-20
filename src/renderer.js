@@ -91,7 +91,7 @@ function drawPlacedPatch(svg, g, patch) {
     x: rect.x, y: rect.y, width: rect.w, height: rect.h,
     fill: hexRgba(patch.color, 0.88), rx: 8,
   }));
-  drawBadge(svg, rect.x + 7, rect.y + 7, patch.cells, patch.color);
+  drawBadge(svg, cellX(g, patch.clueC) + 7, cellY(g, patch.clueR) + 7, patch.cells, patch.color);
 }
 
 /**
