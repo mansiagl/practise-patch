@@ -68,6 +68,8 @@ function attempt(g) {
 
     if (Math.random() < stopChance || !(rows > 1 || cols > 1)) {
       if (rects.length >= PALETTE.length) return false;
+      const clueOffsetR = Math.floor(Math.random() * rows);
+      const clueOffsetC = Math.floor(Math.random() * cols);
       rects.push({
         r:     r0,
         c:     c0,
@@ -75,9 +77,8 @@ function attempt(g) {
         cols,
         color: colors[rects.length % colors.length],
         cells: rows * cols,
-        // Clue is shown in the top-left cell of the patch
-        clueR: r0,
-        clueC: c0,
+        clueR: r0 + clueOffsetR,
+        clueC: c0 + clueOffsetC,
       });
       return true;
     }
@@ -129,7 +130,7 @@ function rowStrips(g) {
         color: colors[rects.length % colors.length],
         cells: w,
         clueR: r,
-        clueC: c,
+        clueC: c + Math.floor(Math.random() * w),
       });
       c += w;
     }
@@ -145,21 +146,22 @@ function rowStrips(g) {
  */
 function validPlacements(g, patch, occupied) {
   const results = [];
-  const maxRows = g - patch.clueR;
-  const maxCols = g - patch.clueC;
-  for (let rows = 1; rows <= maxRows; rows++) {
-    for (let cols = 1; cols <= maxCols; cols++) {
+  for (let rows = 1; rows <= g; rows++) {
+    for (let cols = 1; cols <= g; cols++) {
       if (rows * cols !== patch.cells) continue;
       if (!patch.ambiguous) {
         if (patch.rows === patch.cols && rows !== cols) continue; // ■ must be square
         if (patch.cols > patch.rows && cols <= rows) continue;   // ▬ must be wide
         if (patch.rows > patch.cols && rows <= cols) continue;   // ▮ must be tall
       }
-      let ok = true;
-      outer: for (let r = patch.clueR; r < patch.clueR + rows; r++)
-        for (let c = patch.clueC; c < patch.clueC + cols; c++)
-          if (occupied[r * g + c]) { ok = false; break outer; }
-      if (ok) results.push({ rows, cols });
+      // The clue can be at any offset (dr, dc) within the rectangle.
+      // At least one placement must fit in the grid with the clue inside.
+      const drMin = Math.max(0, patch.clueR - (g - rows));
+      const drMax = Math.min(rows - 1, patch.clueR);
+      const dcMin = Math.max(0, patch.clueC - (g - cols));
+      const dcMax = Math.min(cols - 1, patch.clueC);
+      if (drMin > drMax || dcMin > dcMax) continue;
+      results.push({ rows, cols });
     }
   }
   return results;
