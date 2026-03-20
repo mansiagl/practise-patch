@@ -122,6 +122,15 @@ function drawTentativePatch(svg, g, pos, patch, patchIndex, onDragStart) {
   // Badge pinned to clue cell — never moves regardless of tentative rect position
   drawBadge(svg, cellX(g, patch.clueC) + 7, cellY(g, patch.clueR) + 7, patch.cells, patch.color);
 
+  // Shape hint below the badge, also pinned to clue cell
+  const symEl = svgE("text", {
+    x: cellX(g, patch.clueC) + 19, y: cellY(g, patch.clueR) + 40,
+    "text-anchor": "middle", "font-size": 10,
+    fill: hexRgba(patch.color, 0.85), "pointer-events": "none",
+  });
+  symEl.textContent = patch.ambiguous ? "?" : shapeLabel(patch.rows, patch.cols);
+  svg.appendChild(symEl);
+
   // Transparent drag handle on top
   svg.appendChild(svgE("rect", {
     x: rect.x, y: rect.y, width: rect.w, height: rect.h,

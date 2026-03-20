@@ -7,6 +7,7 @@
 // ── State ─────────────────────────────────────────────────────────────────────
 
 let G         = 4;    // current grid size
+let currentDiff = null; // set on first difficulty selection
 let patches   = [];   // array of patch objects from generator
 let tentative = {};   // patchIndex → { r, c, rows, cols } | null  (player's guess)
 let placed    = {};   // patchIndex → boolean  (true only after full-board verification)
@@ -19,9 +20,9 @@ let timerInt  = null;
 // ── Difficulty config ─────────────────────────────────────────────────────────
 
 const DIFFICULTIES = [
-  { id: "d0", label: "Easy 4×4",   grid: 4 },
-  { id: "d1", label: "Medium 5×5", grid: 5 },
-  { id: "d2", label: "Hard 6×6",   grid: 6 },
+  { id: "d0", label: "Easy 4×4",   grid: 4, complexity: { min: 0, max: 2  } },
+  { id: "d1", label: "Medium 5×5", grid: 5, complexity: { min: 2, max: 5  } },
+  { id: "d2", label: "Hard 6×6",   grid: 6, complexity: { min: 6, max: Infinity } },
 ];
 
 // ── Timer ─────────────────────────────────────────────────────────────────────
@@ -242,7 +243,7 @@ function checkAllPlaced() {
     const s  = Math.floor((Date.now() - startTime) / 1000);
     const m  = Math.floor(s / 60);
     const ss = s % 60;
-    setMsg(`🎉 Solved! ${m}:${ss < 10 ? "0" : ""}${ss} · ${undoStack.length} moves`, "#0F6E56");
+    setMsg(`🎉 Solved! ${m}:${ss < 10 ? "0" : ""}${ss} · ${undoStack.length} moves · complexity ${patches.score}`, "#0F6E56");
     updateProgress();
     render();
   } else {
@@ -254,7 +255,7 @@ function checkAllPlaced() {
 
 /** Generates a fresh random puzzle for the current grid size. */
 function newPuzzle() {
-  patches   = generatePuzzle(G);
+  patches   = generatePuzzle(G, currentDiff ? currentDiff.complexity : undefined);
   tentative = {};
   placed    = {};
   dragState = null;
@@ -318,14 +319,18 @@ function showHint() {
 
 // ── Difficulty button wiring ──────────────────────────────────────────────────
 
-DIFFICULTIES.forEach(({ id, grid }) => {
-  document.getElementById(id).addEventListener("click", () => {
+DIFFICULTIES.forEach((diff) => {
+  document.getElementById(diff.id).addEventListener("click", () => {
     document.querySelectorAll(".dbtn").forEach(b => b.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
-    G = grid;
+    document.getElementById(diff.id).classList.add("active");
+    G = diff.grid;
+    currentDiff = diff;
     newPuzzle();
   });
 });
+
+// Set default difficulty
+currentDiff = DIFFICULTIES[0];
 
 // ── Action button wiring ──────────────────────────────────────────────────────
 

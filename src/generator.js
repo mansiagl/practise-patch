@@ -137,21 +137,93 @@ function rowStrips(g) {
   return rects;
 }
 
+// ── Complexity solver ─────────────────────────────────────────────────────────
+
 /**
- * Generates a valid puzzle for an N×N grid.
- * Tries the guillotine approach up to 300 times, then falls back to row strips.
- *
- * @param {number} g  Grid size (4 | 5 | 6)
- * @returns {Array}   Array of patch objects
+ * Returns all valid (rows, cols) placements for a patch given currently
+ * occupied cells. Uses exact cell count and shape type as constraints.
  */
-function generatePuzzle(g) {
-  let rects;
-  for (let t = 0; t < 300; t++) {
-    const result = attempt(g);
-    if (result) { rects = result; break; }
+function validPlacements(g, patch, occupied) {
+  const results = [];
+  const maxRows = g - patch.clueR;
+  const maxCols = g - patch.clueC;
+  for (let rows = 1; rows <= maxRows; rows++) {
+    for (let cols = 1; cols <= maxCols; cols++) {
+      if (rows * cols !== patch.cells) continue;
+      if (!patch.ambiguous) {
+        if (patch.rows === patch.cols && rows !== cols) continue; // ■ must be square
+        if (patch.cols > patch.rows && cols <= rows) continue;   // ▬ must be wide
+        if (patch.rows > patch.cols && rows <= cols) continue;   // ▮ must be tall
+      }
+      let ok = true;
+      outer: for (let r = patch.clueR; r < patch.clueR + rows; r++)
+        for (let c = patch.clueC; c < patch.clueC + cols; c++)
+          if (occupied[r * g + c]) { ok = false; break outer; }
+      if (ok) results.push({ rows, cols });
+    }
   }
-  if (!rects) rects = rowStrips(g);
-  // Randomly mark ~25% of patches as ambiguous (shape hidden from player)
-  rects.forEach(p => { p.ambiguous = Math.random() < 0.25; });
-  return rects;
+  return results;
+}
+
+/**
+ * Computes a complexity score = total number of wrong choices the player
+ * could make across all patches.
+ *
+ * For each patch on an empty board:
+ *   contribution = max(0, opts − 1) × weight
+ *
+ *   opts   = valid (rows, cols) pairs given exact cell count + shape type
+ *   weight = 1.5 for ambiguous (?) patches, 1.0 otherwise
+ *
+ * Patches with exactly 1 valid placement contribute 0 — they are trivially
+ * determined regardless of when they are placed in the solving sequence.
+ * Only patches where the player has genuine alternatives drive the score up.
+ */
+function measureComplexity(g, patches) {
+  const empty = new Uint8Array(g * g);
+  return Math.round(
+    patches.reduce((sum, p) => {
+      const opts   = validPlacements(g, p, empty).length;
+      const weight = p.ambiguous ? 1.5 : 1.0;
+      return sum + Math.max(0, opts - 1) * weight;
+    }, 0)
+  );
+}
+
+// ── Puzzle generation ─────────────────────────────────────────────────────────
+
+/**
+ * Generates a valid puzzle for an N×N grid, retrying until the backtrack-depth
+ * complexity score falls within [complexityRange.min, complexityRange.max].
+ * Falls back to the closest-scoring puzzle if no exact match is found.
+ *
+ * @param {number} g               Grid size (4 | 5 | 6)
+ * @param {{ min: number, max: number }} complexityRange
+ * @returns {Array}  Patch objects with a `.score` property
+ */
+function generatePuzzle(g, complexityRange = { min: 0, max: Infinity }) {
+  let best = null, bestDist = Infinity;
+
+  for (let t = 0; t < 400; t++) {
+    const rects = attempt(g);
+    if (!rects) continue;
+    rects.forEach(p => { p.ambiguous = Math.random() < 0.25; });
+    const score = measureComplexity(g, rects);
+    rects.score  = score;
+
+    if (score >= complexityRange.min && score <= complexityRange.max) return rects;
+
+    const dist = score < complexityRange.min
+      ? complexityRange.min - score
+      : score - complexityRange.max;
+    if (dist < bestDist) { best = rects; bestDist = dist; }
+  }
+
+  if (!best) {
+    const fb = rowStrips(g);
+    fb.forEach(p => { p.ambiguous = Math.random() < 0.25; });
+    fb.score = measureComplexity(g, fb);
+    return fb;
+  }
+  return best;
 }
