@@ -145,9 +145,13 @@ function rowStrips(g) {
  * @returns {Array}   Array of patch objects
  */
 function generatePuzzle(g) {
+  let rects;
   for (let t = 0; t < 300; t++) {
     const result = attempt(g);
-    if (result) return result;
+    if (result) { rects = result; break; }
   }
-  return rowStrips(g);
+  if (!rects) rects = rowStrips(g);
+  // Randomly mark ~25% of patches as ambiguous (shape hidden from player)
+  rects.forEach(p => { p.ambiguous = Math.random() < 0.25; });
+  return rects;
 }

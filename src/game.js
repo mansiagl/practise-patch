@@ -311,7 +311,7 @@ function showHint() {
   const i = remaining[Math.floor(Math.random() * remaining.length)];
   const p = patches[i];
   setMsg(
-    `Hint: find the ${p.cells}-cell ${shapeName(p.rows, p.cols)} (${shapeLabel(p.rows, p.cols)})`,
+    `Hint: find the ${p.cells}-cell ${p.ambiguous ? "patch (?)" : `${shapeName(p.rows, p.cols)} (${shapeLabel(p.rows, p.cols)})`}`,
     "#185FA5"
   );
 }
