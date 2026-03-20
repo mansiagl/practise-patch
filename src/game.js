@@ -246,16 +246,6 @@ function checkAllPlaced() {
     updateProgress();
     render();
   } else {
-    // Clear wrong placements and prune their undo entries
-    wrongIdxs.forEach(i => { tentative[i] = null; });
-    undoStack = undoStack.filter(({ patchIndex }) => !wrongIdxs.includes(patchIndex));
-
-    const n = wrongIdxs.length;
-    setMsg(
-      `${n} patch${n > 1 ? "es" : ""} wrong — ${n > 1 ? "they've" : "it's"} been reset, keep going!`,
-      "#c0392b"
-    );
-    updateProgress();
     render();
   }
 }
