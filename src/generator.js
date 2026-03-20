@@ -55,6 +55,7 @@ function attempt(g) {
 
   function cut(r0, c0, rows, cols, depth) {
     const area = rows * cols;
+    if (area < 2) return false;
     const maxDepth = g === 4 ? 3 : g === 5 ? 4 : 5;
 
     // Probability of stopping and creating a patch here
@@ -118,7 +119,8 @@ function rowStrips(g) {
     let c = 0;
     while (c < g) {
       const maxW = g - c;
-      const w = maxW === 1 ? 1 : 1 + Math.floor(Math.random() * Math.min(maxW, 3));
+      let w = maxW <= 2 ? maxW : 2 + Math.floor(Math.random() * Math.min(maxW - 2, 2));
+      if (maxW - w === 1) w++; // never leave a single-cell remainder
       rects.push({
         r,
         c,
