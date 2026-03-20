@@ -181,7 +181,7 @@ function drawUnplacedPatch(svg, g, patch, patchIndex, onDragStart) {
     "text-anchor": "middle", "font-size": shapeFz,
     fill: hexRgba(patch.color, 0.72), "pointer-events": "none",
   });
-  symEl.textContent = shapeLabel(patch.rows, patch.cols);
+  symEl.textContent = patch.ambiguous ? "?" : shapeLabel(patch.rows, patch.cols);
   svg.appendChild(symEl);
 
   // Transparent full-cell drag handle (on top of text)
